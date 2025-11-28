@@ -1,46 +1,4 @@
-function escapeHtml(str){
-    if (str === null || str === undefined) return "";
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ----------------------
-// Rolagens Situacionais
-// ----------------------
-function rollSituacional(btn) {
-    const container = btn.closest('.situacional-item');
-    if(!container) return;
-    
-    const atributo = container.querySelector('.sit-atributo')?.value;
-    const numDados = parseInt(container.querySelector('.sit-dados')?.value || "1") || 1;
-    const soma = parseInt(container.querySelector('.sit-soma')?.value || "0") || 0;
-    
-    if(!atributo) {
-        alert('Selecione um atributo!');
-        return;
-    }
-    
-    // Rolar múltiplos d20
-    const rolls = [];
-    for(let i = 0; i < numDados; i++) {
-        rolls.push(Math.floor(Math.random() * 20) + 1);
-    }
-    
-    // Pegar o maior resultado
-    const highest = Math.max(...rolls);
-    const total = highest + soma;
-    
-    // Nome do atributo para exibir
-    const attrNames = {
-        'agi': 'AGI',
-        'int': 'INT',
-        'vig': 'VIG',
-        'pre': 'PRE',
-        'forca': 'FOR'
-    };
-    
-    const skillName = `Situacional (${attrNames[atributo] || atributo})`;
-    showRollModal(rolls, highest, soma, total, skillName);
-}// --- Detecta a página pelo nome do arquivo ---
+// --- Detecta a página pelo nome do arquivo ---
 const pageKey = (() => {
     const path = location.pathname.split('/').pop();
     if (!path || path === "") return 'index';
@@ -57,11 +15,13 @@ function saveField(el) {
     if (!el || !el.id) return;
     try { localStorage.setItem(prefix + el.id, el.value); } catch(e){/*silencioso*/}
 }
+
 function loadField(el) {
     if (!el || !el.id) return;
     const saved = localStorage.getItem(prefix + el.id);
     if (saved !== null) el.value = saved;
 }
+
 function autoBindFields() {
     const fields = document.querySelectorAll("input[type=text], input[type=number], textarea, select");
     fields.forEach(el => {
@@ -70,12 +30,14 @@ function autoBindFields() {
         el.addEventListener("input", fieldSaveListener);
     });
 }
+
 function fieldSaveListener(e){ saveField(e.target); }
 
 // ----------------------
 // Inventário dinâmico
 // ----------------------
 let itemCounter = 0;
+
 function createInventoryRow(name = "", desc = "", weight = "") {
     itemCounter++;
     const itemId = `inv-item-${itemCounter}`;
@@ -88,11 +50,10 @@ function createInventoryRow(name = "", desc = "", weight = "") {
         <input id="${itemId}-weight" type="number" placeholder="Peso" value="${escapeHtml(weight)}">
         <button class="remove-btn">×</button>
     `;
+    
     wrapper.querySelector(".remove-btn").addEventListener("click", () => {
-        localStorage.removeItem(prefix + `${itemId}-name`);
-        localStorage.removeItem(prefix + `${itemId}-desc`);
-        localStorage.removeItem(prefix + `${itemId}-weight`);
         wrapper.remove();
+        saveInventory();
         updateTotalWeight();
     });
     
@@ -114,8 +75,8 @@ function saveInventory(){
     const rows = [...document.querySelectorAll(".inv-item")];
     const list = rows.map(r => ({
         name: r.querySelector(`[id$="-name"]`)?.value || "",
-        desc:  r.querySelector(`[id$="-desc"]`)?.value || "",
-        weight:r.querySelector(`[id$="-weight"]`)?.value || ""
+        desc: r.querySelector(`[id$="-desc"]`)?.value || "",
+        weight: r.querySelector(`[id$="-weight"]`)?.value || ""
     }));
     localStorage.setItem(prefix + 'inventory', JSON.stringify(list));
 }
@@ -144,47 +105,60 @@ function updateTotalWeight() {
 }
 
 // ----------------------
-// Ataques dinâmicos
+// Ataques dinâmicos (CORRIGIDO)
+// NOME | DANO | CRÍTICO | DESCRIÇÃO
 // ----------------------
 let attackCounter = 0;
-function createAttackRow(name="", dmg="", crit="", notes=""){
+
+function createAttackRow(name="", dmg="", crit="", desc=""){
     attackCounter++;
     const id = `atk-${attackCounter}`;
     const wrapper = document.createElement("div");
     wrapper.className = "attack-item";
     wrapper.dataset.attackId = id;
     wrapper.innerHTML = `
-      <input id="${id}-name" placeholder="Ataque" value="${escapeHtml(name)}">
-      <input id="${id}-dmg" placeholder="Dano" value="${escapeHtml(dmg)}">
-      <input id="${id}-crit" placeholder="Critico" value="${escapeHtml(crit)}">
-      <input id="${id}-notes" placeholder="Observações" value="${escapeHtml(notes)}">
+      <input class="attack-name" placeholder="Nome" value="${escapeHtml(name)}">
+      <input class="attack-dmg" placeholder="Dano" value="${escapeHtml(dmg)}">
+      <input class="attack-crit" placeholder="Crítico" value="${escapeHtml(crit)}">
+      <input class="attack-desc" placeholder="Descrição" value="${escapeHtml(desc)}">
       <button class="remove-btn">×</button>
     `;
+    
+    // Evento de remover
     wrapper.querySelector(".remove-btn").addEventListener("click", ()=>{
-        localStorage.removeItem(prefix + `${id}-name`);
-        localStorage.removeItem(prefix + `${id}-dmg`);
-        localStorage.removeItem(prefix + `${id}-crit`);
-        localStorage.removeItem(prefix + `${id}-notes`);
         wrapper.remove();
+        saveAttacks(); // Salva após remover
     });
+    
+    // Evento de input para salvar automaticamente
+    wrapper.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', saveAttacks);
+    });
+    
     const container = document.getElementById("attacks-list");
     if (container) container.appendChild(wrapper);
-    autoBindFields();
 }
-function addAttack(){ createAttackRow(); saveAttacks(); }
+
 function saveAttacks(){
     const rows = [...document.querySelectorAll(".attack-item")];
     const list = rows.map(r => ({
-        name: r.querySelector(`[id$="-name"]`)?.value || "",
-        dmg: r.querySelector(`[id$="-dmg"]`)?.value || "",
-        crit: r.querySelector(`[id$="-crit"]`)?.value || "",
-        notes: r.querySelector(`[id$="-notes"]`)?.value || ""
+        name: r.querySelector(".attack-name")?.value || "",
+        dmg: r.querySelector(".attack-dmg")?.value || "",
+        crit: r.querySelector(".attack-crit")?.value || "",
+        desc: r.querySelector(".attack-desc")?.value || ""
     }));
     localStorage.setItem(prefix + 'attacks', JSON.stringify(list));
 }
+
 function loadAttacks(){
+    // Limpa o container antes de carregar
+    const container = document.getElementById("attacks-list");
+    if (container) container.innerHTML = '';
+    
     const data = JSON.parse(localStorage.getItem(prefix + 'attacks') || "[]");
-    if (data && data.length) data.forEach(a => createAttackRow(a.name, a.dmg, a.crit, a.notes));
+    if (data && data.length) {
+        data.forEach(a => createAttackRow(a.name, a.dmg, a.crit, a.desc));
+    }
 }
 
 // ----------------------
@@ -231,10 +205,8 @@ function rollD20For(btn){
     const container = btn.closest('.pericia');
     if(!container) return;
     
-    // Pegar o atributo associado à perícia
     const attr = container.dataset.attr;
     
-    // Buscar valor do atributo
     const attrs = {
         agi:  parseInt(localStorage.getItem(prefix + 'agi') || localStorage.getItem('umbrantium-index-agi') || 0) || 0,
         int:  parseInt(localStorage.getItem(prefix + 'int') || localStorage.getItem('umbrantium-index-int') || 0) || 0,
@@ -244,28 +216,63 @@ function rollD20For(btn){
     };
     
     const attrValue = attrs[attr] || 1;
-    const numDice = Math.max(1, attrValue); // Rola no mínimo 1 dado
+    const numDice = Math.max(1, attrValue);
     
-    // Rolar múltiplos d20
     const rolls = [];
     for(let i = 0; i < numDice; i++) {
         rolls.push(Math.floor(Math.random() * 20) + 1);
     }
     
-    // Pegar o maior resultado
     const highest = Math.max(...rolls);
     
-    // Pegar modificadores da perícia
     const modificador = parseInt(container.querySelector('.modificador')?.value || "0") || 0;
     const outros = parseInt(container.querySelector('.outros')?.value || "0") || 0;
     const totalMod = modificador + outros;
     
     const total = highest + totalMod;
     
-    // Mostrar modal com resultado
     showRollModal(rolls, highest, totalMod, total, container.querySelector('label')?.textContent || 'Perícia');
 }
 
+// ----------------------
+// Rolagens Situacionais
+// ----------------------
+function rollSituacional(btn) {
+    const container = btn.closest('.situacional-item');
+    if(!container) return;
+    
+    const atributo = container.querySelector('.sit-atributo')?.value;
+    const numDados = parseInt(container.querySelector('.sit-dados')?.value || "1") || 1;
+    const soma = parseInt(container.querySelector('.sit-soma')?.value || "0") || 0;
+    
+    if(!atributo) {
+        alert('Selecione um atributo!');
+        return;
+    }
+    
+    const rolls = [];
+    for(let i = 0; i < numDados; i++) {
+        rolls.push(Math.floor(Math.random() * 20) + 1);
+    }
+    
+    const highest = Math.max(...rolls);
+    const total = highest + soma;
+    
+    const attrNames = {
+        'agi': 'AGI',
+        'int': 'INT',
+        'vig': 'VIG',
+        'pre': 'PRE',
+        'forca': 'FOR'
+    };
+    
+    const skillName = `Situacional (${attrNames[atributo] || atributo})`;
+    showRollModal(rolls, highest, soma, total, skillName);
+}
+
+// ----------------------
+// Modal de rolagem
+// ----------------------
 function showRollModal(rolls, highest, mod, total, skillName) {
     const existing = document.querySelector('.roll-modal');
     if(existing) existing.remove();
@@ -301,9 +308,68 @@ function showRollModal(rolls, highest, mod, total, skillName) {
     });
 }
 
+// ----------------------
+// Utilidades
+// ----------------------
 function escapeHtml(str){
     if (str === null || str === undefined) return "";
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ----------------------
+// Notas
+// ----------------------
+let noteCounter = 0;
+
+function createNoteEntry(title="", content="", date=""){
+    noteCounter++;
+    const id = `note-${noteCounter}`;
+    const wrapper = document.createElement("div");
+    wrapper.className = "note-entry";
+    wrapper.dataset.noteId = id;
+    
+    const dateStr = date || new Date().toLocaleString('pt-BR');
+    
+    wrapper.innerHTML = `
+        <div class="note-header">
+            <input class="note-title" placeholder="Título da entrada" value="${escapeHtml(title)}">
+            <span class="note-date">${dateStr}</span>
+            <button class="remove-btn">×</button>
+        </div>
+        <textarea class="note-content" placeholder="Escreva sua nota aqui...">${escapeHtml(content)}</textarea>
+    `;
+    
+    wrapper.querySelector(".remove-btn").addEventListener("click", ()=>{
+        wrapper.remove();
+        saveNotes();
+    });
+    
+    wrapper.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('input', saveNotes);
+    });
+    
+    const container = document.getElementById("notes-list");
+    if (container) container.appendChild(wrapper);
+}
+
+function saveNotes(){
+    const rows = [...document.querySelectorAll(".note-entry")];
+    const list = rows.map(r => ({
+        title: r.querySelector(".note-title")?.value || "",
+        content: r.querySelector(".note-content")?.value || "",
+        date: r.querySelector(".note-date")?.textContent || ""
+    }));
+    localStorage.setItem(prefix + 'notes', JSON.stringify(list));
+}
+
+function loadNotes(){
+    const container = document.getElementById("notes-list");
+    if (container) container.innerHTML = '';
+    
+    const data = JSON.parse(localStorage.getItem(prefix + 'notes') || "[]");
+    if (data && data.length) {
+        data.forEach(n => createNoteEntry(n.title, n.content, n.date));
+    }
 }
 
 // ----------------------
@@ -312,38 +378,42 @@ function escapeHtml(str){
 window.addEventListener('DOMContentLoaded', ()=> {
     autoBindFields();
 
+    // Inventário
     if (document.getElementById('inventory-list')) {
         loadInventory();
-        document.addEventListener('input', (e)=> {
-            if(e.target.closest('.inv-item')) {
-                saveInventory();
-                updateTotalWeight();
-            }
-        });
+        document.getElementById('add-item')?.addEventListener('click', addInventoryItem);
     }
 
+    // Ataques
     if (document.getElementById('attacks-list')) {
         loadAttacks();
         document.getElementById('add-attack')?.addEventListener('click', ()=>{
-            createAttackRow(); saveAttacks();
+            createAttackRow();
+            saveAttacks();
         });
-        document.addEventListener('input', ()=> saveAttacks());
     }
 
+    // Notas
+    if (document.getElementById('notes-list')) {
+        loadNotes();
+        document.getElementById('add-note')?.addEventListener('click', ()=>{
+            createNoteEntry();
+            saveNotes();
+        });
+    }
+
+    // Perícias
     if (document.querySelectorAll('.pericia').length) {
-        // Bind do botão de rolar
         document.addEventListener('click', (e)=>{
             if (e.target.classList.contains('roll')) rollD20For(e.target);
         });
         
-        // Atualizar quando campos de perícia mudarem (input ou select)
         document.addEventListener('input', (e)=>{
             if(e.target.closest('.pericia') && (e.target.classList.contains('modificador') || e.target.classList.contains('outros'))) {
                 atualizarPericias();
             }
         });
         
-        // Atualizar quando select mudar
         document.addEventListener('change', (e)=>{
             if(e.target.closest('.pericia') && e.target.classList.contains('modificador')) {
                 atualizarPericias();
@@ -353,6 +423,14 @@ window.addEventListener('DOMContentLoaded', ()=> {
         loadPericias();
     }
 
+    // Rolagens situacionais
+    if (document.querySelectorAll('.situacional-item').length) {
+        document.addEventListener('click', (e)=>{
+            if (e.target.classList.contains('sit-roll')) rollSituacional(e.target);
+        });
+    }
+
+    // Salvar campos automaticamente
     document.addEventListener('input', ()=> {
         document.querySelectorAll("input[id], textarea[id], select[id]").forEach(el => saveField(el));
     });

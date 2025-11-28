@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UMBRANTIUM – Notas</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">UMBRANTIUM</div>
+    <nav>
+      <a href="index.html">Ficha</a>
+      <a href="inventario.html">Inventário</a>
+      <a href="habilidades.html">Habilidades</a>
+      <a href="notas.html" class="active">Notas</a>
+    </nav>
+    <div class="brand-small">Umbrantium</div>
+    <button class="toggle" id="menuToggle">☰</button>
+  </aside>
+
+  <main class="content">
+    <header class="top-header">
+      <h1>NOTAS</h1>
+      <p class="subtitle">Anotações e Diário de Aventuras</p>
+    </header>
+
+    <section class="sheet">
+      <div class="notes-container">
+        
+        <!-- Área de Notas Rápidas -->
+        <div class="panel notes-quick">
+          <h2>Notas Rápidas</h2>
+          <textarea id="quick-notes" placeholder="Escreva suas notas rápidas aqui..."></textarea>
+        </div>
+
+        <!-- Lista de Notas Detalhadas -->
+        <div class="panel notes-detailed">
+          <h2>Diário de Aventuras</h2>
+          <button class="add-btn" id="add-note">+ Nova Entrada</button>
+          <div id="notes-list"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="footer">Umbrantium – Fichas salvas localmente no seu navegador</footer>
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
