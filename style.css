@@ -13,8 +13,7 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
 body{
-    background:#111; /* base */
-    background:linear-gradient(180deg,#1a1a1a 0%, #101010 100%);
+    background:#1a1a1a; /* fundo uniforme mais claro */
     min-height:100vh;
     color:var(--muted);
 }
@@ -42,12 +41,13 @@ body{
 
 
 .sheet{display:flex;gap:20px;margin-top:18px}
-.left-col{flex:0 0 60%;display:flex;flex-direction:column;gap:14px}
+.left-col{flex:0 0 45%;display:flex;flex-direction:column;gap:14px}
 .right-col{flex:1;display:flex;flex-direction:column;gap:14px}
 .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.03)}
 .panel h2{margin:0 0 8px 0;color:var(--accent)}
 label{display:block;margin-bottom:8px}
 input[type=text], input[type=number], textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+input::placeholder, textarea::placeholder{color:rgba(191,184,172,0.4)}
 
 
 .hex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -84,10 +84,16 @@ button:hover{background:var(--accent);color:#111}
 
 .inv-header {
   display: grid;
-  grid-template-columns: 1fr 2fr 80px 40px;
+  grid-template-columns: 1fr 2.5fr 80px 40px;
+  gap: .5rem;
   font-size: 14px;
   margin-bottom: 6px;
   opacity: 0.7;
+  padding: 0 8px;
+}
+
+.inv-header span {
+  text-align: left;
 }
 
 #inventory-list {
@@ -148,16 +154,35 @@ button.remove:hover {
     gap: .4rem;
 }
 
-.attack-item,
+.attack-item {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 2fr 40px;
+    gap: .5rem;
+    align-items: center;
+    padding: 4px;
+}
+
 .inv-item {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 2fr auto;
-    gap: .3rem;
+    grid-template-columns: 1fr 2.5fr 80px 40px;
+    gap: .5rem;
+    align-items: center;
+    padding: 4px;
 }
 
 .attack-item input,
 .inv-item input {
     width: 100%;
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 8px;
+    border-radius: 6px;
+    color: var(--muted);
+}
+
+.attack-item input::placeholder,
+.inv-item input::placeholder {
+    color: rgba(191,184,172,0.4);
 }
 
 .add-btn {
@@ -165,39 +190,199 @@ button.remove:hover {
     border-radius: .4rem;
     cursor: pointer;
 }
+
 .remove-btn {
     cursor: pointer;
+    background: transparent;
+    border: none;
+    color: #d66;
+    font-size: 18px;
+    padding: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.pericias {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.remove-btn:hover {
+    color: #ff5555;
+    transform: scale(1.1);
+}
+
+.pericias-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    column-gap: 12px;
 }
 
 .pericia {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 130px 1fr;
     background: #ffffff10;
     padding: 8px;
     border-radius: 6px;
+    align-items: center;
+    gap: 8px;
 }
 
 .pericia label {
     font-weight: bold;
+    margin: 0;
+    white-space: nowrap;
 }
 
 .pericia .dados {
-    display: flex;
+    display: grid;
+    grid-template-columns: 40px 60px 60px 35px;
     align-items: center;
     gap: 6px;
 }
 
 .calc {
-    min-width: 30px;
     text-align: center;
     background: #0004;
     padding: 4px 6px;
     border-radius: 4px;
 }
 
+.pericia .modificador,
+.pericia .outros {
+    width: 100%;
+    padding: 4px;
+    text-align: center;
+    font-size: 12px;
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    color: var(--muted);
+}
+
+.pericia .modificador {
+    cursor: pointer;
+}
+
+.pericia .roll {
+    padding: 4px 6px;
+    width: 35px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal de rolagem */
+.roll-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.roll-modal-content {
+    background: var(--panel);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+}
+
+.roll-modal h3 {
+    color: var(--accent);
+    margin-top: 0;
+}
+
+.roll-dice-list {
+    margin: 16px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.roll-die {
+    background: rgba(255,255,255,0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 18px;
+}
+
+.roll-die.highest {
+    background: var(--accent);
+    color: #111;
+    font-weight: bold;
+}
+
+.roll-summary {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.roll-total {
+    font-size: 24px;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.roll-close {
+    margin-top: 16px;
+    width: 100%;
+}
+
+/* Rolagens Situacionais */
+.panel.situacionais {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.panel.situacionais h2 {
+    margin: 0 0 8px 0;
+    color: var(--accent);
+}
+
+.situacional-item {
+    display: grid;
+    grid-template-columns: 120px 80px 80px 40px;
+    gap: 8px;
+    align-items: center;
+    background: #ffffff10;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.sit-atributo,
+.sit-dados,
+.sit-soma {
+    width: 100%;
+    padding: 6px;
+    text-align: center;
+    font-size: 12px;
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    color: var(--muted);
+}
+
+.sit-atributo {
+    cursor: pointer;
+    text-align: left;
+    padding-left: 8px;
+}
+
+.sit-roll {
+    width: 40px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
