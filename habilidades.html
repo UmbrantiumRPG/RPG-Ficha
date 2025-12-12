@@ -52,18 +52,60 @@
 
 <main class="content">
 <header class="top-header">
-<h1>UMBRANTIUM</h1>
-<p class="subtitle">Habilidades e Magias</p>
+<h1>HABILIDADES</h1>
+<p class="subtitle">Magias e Habilidades</p>
 </header>
 
+<section class="sheet habilidades-layout">
+  <div class="habilidades-left">
+    <!-- Habilidades e Magias -->
+    <div class="panel habilidades-panel">
+      <h2>Habilidades & Magias</h2>
+      <button class="add-btn" id="add-habilidade">+ Nova Habilidade</button>
+      <div id="habilidades-list"></div>
+    </div>
+  </div>
 
-<section class="panel">
-<h2>Habilidades</h2>
-<textarea id="habilidades" rows="15" placeholder="Ex: Bola de Sombras - Dano 2d6 - Custo 3 MN"></textarea>
+  <div class="habilidades-right">
+    <!-- Equipamentos no Personagem -->
+    <div class="panel equipamentos-panel">
+      <h2>Equipamentos</h2>
+      <div class="character-equipment">
+<img src="1000_F_321504393_b1KJyJ4T51UExMk4twt7SNb17BHGFEnh.png" alt="Personagem" class="character-silhouette">
+
+        <!-- Slots de equipamento -->
+        <div class="equipment-slots">
+          <div class="equip-slot slot-head" style="top: 50px; left: 50%;">
+            <label>CABEÇA</label>
+            <input type="text" id="equip-head" placeholder="Capacete, Chapeu...">
+          </div>
+
+          <div class="equip-slot slot-chest" style="top: 200px; left: 50%;">
+            <label>PEITORAL</label>
+            <input type="text" id="equip-chest" placeholder="Armadura, Roupa...">
+          </div>
+
+          <div class="equip-slot slot-hands" style="top: 280px; left: 50%;">
+            <label>MÃOS</label>
+            <input type="text" id="equip-hands" placeholder="Luvas, Manoplas...">
+          </div>
+
+          <div class="equip-slot slot-legs" style="top: 450px; left: 50%;">
+            <label>CALÇA</label>
+            <input type="text" id="equip-legs" placeholder="Calças, Grevas...">
+          </div>
+
+          <div class="equip-slot slot-feet" style="top: 650px; left: 50%;">
+            <label>BOTAS</label>
+            <input type="text" id="equip-feet" placeholder="Botas, Sapatos...">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-
-<footer class="footer">Dados salvos localmente</footer>
+<footer class="footer">Umbrantium – Dados salvos localmente</footer>
 </main>
 </div>
 <script src="script.js"></script>

@@ -1,3 +1,31 @@
+// ----------------------
+// Sistema de Temas - CARREGAR ANTES DE TUDO
+// ----------------------
+const THEME_KEY = 'umbrantium-theme';
+
+// Carrega o tema IMEDIATAMENTE
+(function() {
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    console.log('🎨 Tema carregado:', savedTheme);
+})();
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    const themeSelector = document.getElementById('theme-selector');
+    if (themeSelector) {
+        themeSelector.value = savedTheme;
+    }
+}
+
+function setTheme(theme) {
+    console.log('🎨 Mudando tema para:', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+}
+
 // --- Detecta a página pelo nome do arquivo ---
 const pageKey = (() => {
     const path = location.pathname.split('/').pop();
@@ -458,25 +486,7 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
         setTimeout(() => notif.remove(), 300);
     }, 3000);
 }
-// ----------------------
-// Sistema de Temas
-// ----------------------
-const THEME_KEY = 'umbrantium-theme';
 
-function loadTheme() {
-    const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    
-    const themeSelector = document.getElementById('theme-selector');
-    if (themeSelector) {
-        themeSelector.value = savedTheme;
-    }
-}
-
-function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(THEME_KEY, theme);
-}
 
 // ----------------------
 // Utilidades
@@ -485,6 +495,60 @@ function setTheme(theme) {
 function escapeHtml(str){
     if (str === null || str === undefined) return "";
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ----------------------
+// Habilidades
+// ----------------------
+let habilidadeCounter = 0;
+
+function createHabilidadeEntry(nome="", custo="", descricao=""){
+    habilidadeCounter++;
+    const id = `habilidade-${habilidadeCounter}`;
+    const wrapper = document.createElement("div");
+    wrapper.className = "habilidade-entry";
+    wrapper.dataset.habilidadeId = id;
+    
+    wrapper.innerHTML = `
+        <div class="habilidade-header">
+            <input class="habilidade-nome" placeholder="Nome da Habilidade" value="${escapeHtml(nome)}">
+            <input class="habilidade-custo" type="text" placeholder="Custo" value="${escapeHtml(custo)}">
+            <button class="remove-btn">×</button>
+        </div>
+        <textarea class="habilidade-descricao" placeholder="Descrição: efeito, alcance, duração...">${escapeHtml(descricao)}</textarea>
+    `;
+    
+    wrapper.querySelector(".remove-btn").addEventListener("click", ()=>{
+        wrapper.remove();
+        saveHabilidades();
+    });
+    
+    wrapper.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('input', saveHabilidades);
+    });
+    
+    const container = document.getElementById("habilidades-list");
+    if (container) container.appendChild(wrapper);
+}
+
+function saveHabilidades(){
+    const rows = [...document.querySelectorAll(".habilidade-entry")];
+    const list = rows.map(r => ({
+        nome: r.querySelector(".habilidade-nome")?.value || "",
+        custo: r.querySelector(".habilidade-custo")?.value || "",
+        descricao: r.querySelector(".habilidade-descricao")?.value || ""
+    }));
+    localStorage.setItem(prefix + 'habilidades', JSON.stringify(list));
+}
+
+function loadHabilidades(){
+    const container = document.getElementById("habilidades-list");
+    if (container) container.innerHTML = '';
+    
+    const data = JSON.parse(localStorage.getItem(prefix + 'habilidades') || "[]");
+    if (data && data.length) {
+        data.forEach(h => createHabilidadeEntry(h.nome, h.custo, h.descricao));
+    }
 }
 
 // ----------------------
@@ -548,20 +612,24 @@ function loadNotes(){
 // ----------------------
 window.addEventListener('DOMContentLoaded', ()=> {
 
-        // Carrega o tema salvo
+    // 1. PRIMEIRO - Carrega o tema
     loadTheme();
 
-        // Event listener para mudança de tema
+    // 2. SEGUNDO - Inicializa menu mobile
+    initMobileMenu();
+    
+    // 3. TERCEIRO - Campos automáticos
+    autoBindFields();
+
+    // 4. Event listener do seletor de tema
     const themeSelector = document.getElementById('theme-selector');
     if (themeSelector) {
         themeSelector.addEventListener('change', (e) => {
+            console.log('Tema selecionado:', e.target.value);
             setTheme(e.target.value);
             mostrarNotificacao('Tema alterado!', 'success');
         });
     }
-        // Inicializa o menu mobile
-    initMobileMenu();
-    autoBindFields();
 
     // Inventário
     if (document.getElementById('inventory-list')) {
@@ -575,6 +643,15 @@ window.addEventListener('DOMContentLoaded', ()=> {
         document.getElementById('add-attack')?.addEventListener('click', ()=>{
             createAttackRow();
             saveAttacks();
+        });
+    }
+
+    // Habilidades
+    if (document.getElementById('habilidades-list')) {
+        loadHabilidades();
+        document.getElementById('add-habilidade')?.addEventListener('click', ()=>{
+            createHabilidadeEntry();
+            saveHabilidades();
         });
     }
 
